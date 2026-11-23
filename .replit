@@ -1,0 +1,6 @@
+run = "pip install -r requirements.txt -q && python serve.py"
+modules = ["python-3.12"]
+
+[[ports]]
+localPort = 5000
+externalPort = 80
