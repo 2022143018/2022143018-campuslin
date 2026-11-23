@@ -1,0 +1,12 @@
+.env
+instance/
+*.db
+campuslin_backups/
+start_campuslin.bat
+__pycache__/
+*.pyc
+.venv/
+venv/
+.idea/
+.pythonlibs/
+.cache/
