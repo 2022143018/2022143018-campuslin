@@ -9,7 +9,7 @@
 | 배포 주소 (Replit) | https://cf1ae03b-ac27-4a05-82a5-139733027ddc-00-3ahgch1z0mhqn.sisko.replit.dev |
 | GitHub | https://github.com/2022143018/2022143018-campuslin |
 | 대상 학교 | 신구대학교 (설정으로 다른 학교도 가능) |
-| 개발 | 2022143018 · AI(Claude)와 함께 개발 |
+| 개발 | 본인 및 AI(Claude)와 함께 개발 |
 
 > 시연용 서버라 **시연할 때만 켜 둡니다.** 꺼져 있으면 주소가 열리지 않을 수 있어요.
 
