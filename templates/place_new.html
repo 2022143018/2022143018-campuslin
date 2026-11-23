@@ -1,0 +1,57 @@
+{% extends "base.html" %}
+{% from "_macros.html" import review_fields with context %}
+{% block title %}가게 등록 - 캠슐랭{% endblock %}
+{% block content %}
+{% set f = form or {} %}
+<main class="page">
+  <p><a href="{{ url_for('index') }}">← 지도로</a></p>
+  <h1>가게 등록</h1>
+  <p class="muted small">학교에서 {{ max_km }}km 이내의 가게만 등록할 수 있어요. 가게를 등록하면 첫 리뷰도 함께 남기게 됩니다.</p>
+
+  <section class="card">
+    <h3>1. 가게 찾기</h3>
+    <form id="search-form" class="row">
+      <input id="keyword" placeholder="가게 이름 (예: 김밥천국 신구대점)" required>
+      <button class="btn" type="submit">검색</button>
+    </form>
+    <p id="search-msg" class="muted small"></p>
+    <ul id="search-results" class="search-results"></ul>
+  </section>
+
+  <form method="post" enctype="multipart/form-data" class="card stack" id="place-form">
+    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+    {% for k in ["kakao_id", "name", "address", "phone", "kakao_url", "lat", "lng"] %}
+      <input type="hidden" name="{{ k }}" value="{{ f.get(k, '') }}">
+    {% endfor %}
+
+    <h3>2. 선택한 가게</h3>
+    <div id="selected" class="selected {% if not f.get('kakao_id') %}empty{% endif %}">
+      {% if f.get('kakao_id') %}<b>{{ f.get('name') }}</b><br><span class="small muted">{{ f.get('address') }}</span>
+      {% else %}위에서 가게를 검색해 선택하세요.{% endif %}
+    </div>
+
+    <div class="field">
+       <label class="label">음식 종류 <span class="muted small">(해당하는 것 모두)</span></label>
+      <div class="chips">
+        {% for c in CATEGORIES %}
+          <label class="chip"><input type="checkbox" name="category" value="{{ c }}" {% if f.getlist and c in f.getlist('category') %}checked{% endif %}><span>{{ c }}</span></label>
+        {% endfor %}
+      </div>
+    </div>
+
+    <h3>3. 첫 리뷰</h3>
+    {{ review_fields(form) }}
+
+    <button class="btn btn-primary btn-block" type="submit" id="submit-btn" {% if not f.get('kakao_id') %}disabled{% endif %}>등록하기</button>
+  </form>
+</main>
+{% endblock %}
+
+{% block scripts %}
+<script>window.SCHOOL = {{ {"lat": school.lat, "lng": school.lng} | tojson }}; window.MAX_KM = {{ max_km }};</script>
+{% if kakao_js_key %}
+<script src="https://dapi.kakao.com/v2/maps/sdk.js?appkey={{ kakao_js_key }}&libraries=services&autoload=false"></script>
+{% endif %}
+<script src="{{ url_for('static', filename='js/common.js') }}"></script>
+<script src="{{ url_for('static', filename='js/place_new.js') }}"></script>
+{% endblock %}

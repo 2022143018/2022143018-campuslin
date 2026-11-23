@@ -1,0 +1,35 @@
+{% extends "base.html" %}
+{% block title %}재학생 인증 - 캠슐랭{% endblock %}
+{% block content %}
+<main class="center-card">
+  <h1>{{ school.name }} 재학생 인증</h1>
+
+  {% if step == "code" and email %}
+    <p class="muted"><b>{{ email }}</b>로 보낸 6자리 코드를 입력하세요. (10분 안에)</p>
+    <form method="post" action="{{ url_for('verify_confirm') }}" class="stack">
+      <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+      <input name="code" inputmode="numeric" pattern="[0-9]{6}" maxlength="6" placeholder="인증 코드 6자리" required autofocus>
+      <button class="btn btn-primary btn-block" type="submit">인증하기</button>
+    </form>
+    <p class="small"><a href="{{ url_for('verify') }}">이메일을 다시 입력하거나 코드 재요청</a></p>
+  {% else %}
+    <p class="muted">학교 이메일로 인증한 학생만 가게를 등록하고 리뷰를 쓸 수 있어요.<br>
+      사용 가능: {% for d in school.domains() %}<code>@{{ d }}</code>{% if not loop.last %}, {% endif %}{% endfor %}</p>
+    <form method="post" class="stack">
+      <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+      <input type="email" name="email" placeholder="학번@{{ school.domains()[0] }}" required autofocus>
+      <div class="privacy">
+        <b>개인정보 수집·이용 동의 (필수)</b>
+        <ul>
+          <li>수집 항목: 학교 이메일 주소, 로그인 계정 식별값, 닉네임</li>
+          <li>이용 목적: 재학생 확인, 중복 가입 및 광고성 리뷰 방지</li>
+          <li>보관 기간: 회원 탈퇴 시까지</li>
+          <li>리뷰는 다른 학생에게 <b>익명</b>으로 표시되며, 영수증 사진은 공개되지 않습니다.</li>
+        </ul>
+        <label class="check"><input type="checkbox" name="agree" value="1" required> 동의합니다</label>
+      </div>
+      <button class="btn btn-primary btn-block" type="submit">인증 코드 받기</button>
+    </form>
+  {% endif %}
+</main>
+{% endblock %}

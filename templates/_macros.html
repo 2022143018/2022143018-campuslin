@@ -1,0 +1,57 @@
+{# 리뷰 입력 항목 (가게 등록 폼과 리뷰 작성 폼에서 같이 사용) #}
+{% macro review_fields(form=None) %}
+  {% set f = form or {} %}
+  <div class="field">
+    <label class="label">별점</label>
+    <div class="stars">
+      {% for i in range(5, 0, -1) %}
+        <input type="radio" id="star{{ i }}" name="rating" value="{{ i }}" {% if f.get('rating') == i|string %}checked{% endif %} required>
+        <label for="star{{ i }}" title="{{ i }}점">★</label>
+      {% endfor %}
+    </div>
+  </div>
+
+  <div class="field">
+    <label class="label">1인 기준 가격대 <span class="muted small">(해당하는 것 모두)</span></label>
+    <div class="chips">
+      {% for k, v in PRICE_TAGS %}
+        <label class="chip"><input type="checkbox" name="price" value="{{ k }}" {% if f.getlist and k in f.getlist('price') %}checked{% endif %}><span>{{ v }}</span></label>
+      {% endfor %}
+    </div>
+  </div>
+
+  <div class="field">
+    <label class="label">좌석 규모 <span class="muted small">(해당하는 것 모두)</span></label>
+    <div class="chips">
+      {% for k, v in SEAT_TAGS %}
+        <label class="chip"><input type="checkbox" name="tags" value="{{ k }}" {% if f.getlist and k in f.getlist('tags') %}checked{% endif %}><span>{{ v }}</span></label>
+      {% endfor %}
+    </div>
+  </div>
+
+  <div class="field">
+    <label class="label">기타</label>
+    <div class="chips">
+      {% for k, v in EXTRA_TAGS %}
+        <label class="chip"><input type="checkbox" name="tags" value="{{ k }}" {% if f.getlist and k in f.getlist('tags') %}checked{% endif %}><span>{{ v }}</span></label>
+      {% endfor %}
+    </div>
+  </div>
+
+  <div class="field">
+    <label class="label">한줄평 <span class="muted small">(선택 · 별점과 태그만 눌러도 등록돼요)</span></label>
+    <textarea name="content" rows="2" maxlength="500"
+      placeholder="추천 메뉴, 양, 분위기 등. 비방·광고성 리뷰는 신고로 숨겨질 수 있어요.">{{ f.get('content', '') }}</textarea>
+  </div>
+
+  <div class="field">
+    <label class="label">📷 음식·메뉴 사진 <span class="muted small">(선택 · 최대 3장 · 같은 학교 학생에게 공개)</span></label>
+    <input type="file" name="photos" accept="image/jpeg,image/png,image/webp" multiple data-max="3">
+    <p class="muted small">사람 얼굴이나 개인정보가 나오지 않게 찍어 주세요. 사진 속 위치정보는 자동으로 지워져요.</p>
+  </div>
+
+  <div class="field">
+    <label class="label">영수증 사진 <span class="muted small">(선택 · 올리면 '방문 인증' 배지 · 다른 사람에게 공개되지 않음)</span></label>
+    <input type="file" name="receipt" accept="image/*">
+  </div>
+{% endmacro %}

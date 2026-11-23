@@ -1,0 +1,29 @@
+{% extends "base.html" %}
+{% block title %}로그인 - 캠슐랭{% endblock %}
+{% block content %}
+<main class="center-card">
+  <h1>같은 학교 학생끼리 만드는<br>학교 주변 맛집 지도</h1>
+  <p class="muted">광고 리뷰 없이, 재학생 인증을 마친 학생들의 리뷰만 모았어요.</p>
+
+  <div class="stack">
+    {% for key, label in providers.items() %}
+      <a class="btn btn-{{ key }} btn-block" href="{{ url_for('login_provider', provider=key) }}">{{ label }}</a>
+    {% endfor %}
+  </div>
+
+  {% if dev_login %}
+    <form class="dev-login" method="post" action="{{ url_for('dev_login') }}">
+      <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+      <p class="muted small">개발 모드 로그인 (OAuth 키 없이 테스트용)</p>
+      <div class="row">
+        <input name="name" placeholder="닉네임 (2~20자)" minlength="2" maxlength="20" required>
+        <button class="btn" type="submit">시작</button>
+      </div>
+    </form>
+  {% endif %}
+
+  {% if not providers and not dev_login %}
+    <p class="warn">로그인 방법이 설정되지 않았습니다. .env 파일에 GOOGLE_CLIENT_ID 또는 KAKAO_REST_KEY를 넣거나, 테스트 중이라면 DEV_LOGIN=1 로 설정하세요.</p>
+  {% endif %}
+</main>
+{% endblock %}

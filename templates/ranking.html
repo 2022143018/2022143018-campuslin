@@ -1,0 +1,48 @@
+{% extends "base.html" %}
+{% block title %}리뷰어 랭킹 - 캠슐랭{% endblock %}
+{% block content %}
+<main class="page">
+  <p><a href="{{ url_for('index') }}">← 지도로</a></p>
+  <h1>🏆 {{ month }}월 캠슐랭 리뷰어</h1>
+  <p class="muted small">이번 달 리뷰 수 기준이에요. 같으면 개척자 배지가 많은 순서입니다. 신고로 숨겨진 리뷰는 빠져요.</p>
+
+  <section class="card">
+    <h3>내 활동 {% if my_rank %}<span class="badge">이번 달 {{ my_rank }}위</span>{% endif %}</h3>
+    <div class="my-stats">
+      <div><b>{{ mine.month }}</b><span class="small muted">이번 달 리뷰</span></div>
+      <div><b>{{ mine.total }}</b><span class="small muted">전체 리뷰</span></div>
+      <div><b>{{ mine.pioneer }}</b><span class="small muted">🏅 개척자</span></div>
+    </div>
+  </section>
+
+  <section class="card">
+    <h3>TOP 10</h3>
+    {% if top %}
+      <ul class="rank-list">
+        {% for u in top %}
+          <li class="{% if u.me %}me{% endif %}">
+            <span class="rank-no">{% if u.rank == 1 %}🥇{% elif u.rank == 2 %}🥈{% elif u.rank == 3 %}🥉{% else %}{{ u.rank }}{% endif %}</span>
+            <span class="rank-name">{{ u.name }}{% if u.me %} <span class="muted small">(나)</span>{% endif %}</span>
+            <span class="small">리뷰 <b>{{ u.month }}</b>{% if u.pioneer %} · 🏅 {{ u.pioneer }}{% endif %}</span>
+          </li>
+        {% endfor %}
+      </ul>
+    {% else %}
+      <p class="empty">이번 달 첫 리뷰어가 되어 보세요!</p>
+    {% endif %}
+  </section>
+
+  {% if waiting %}
+  <section class="card">
+    <h3>첫 리뷰를 기다리는 가게</h3>
+    <p class="muted small">여기에 첫 리뷰를 남기면 🏅 개척자 배지를 받아요.</p>
+    <ul class="rank-list">
+      {% for p in waiting %}
+        <li><span class="rank-name"><a href="{{ url_for('index', place=p.id) }}">{{ p.name }}</a>
+          <span class="muted small">{{ p.category_text }}</span></span></li>
+      {% endfor %}
+    </ul>
+  </section>
+  {% endif %}
+</main>
+{% endblock %}

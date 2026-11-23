@@ -1,0 +1,142 @@
+{% extends "base.html" %}
+{% block title %}운영자 페이지 - 캠슐랭{% endblock %}
+{% block content %}
+<main class="page admin-page">
+  <p><a href="{{ url_for('index') }}">← 지도로</a></p>
+  <h1>🛠 운영자 페이지</h1>
+
+  {% if KAKAO_REVIEW_DEMO %}
+  <p><a class="btn btn-sm btn-kakao-review" href="{{ url_for('kakao_import') }}">⭐ 카카오맵 리뷰 가져오기 (시연용)</a></p>
+  {% endif %}
+
+  <!-- 통계 -->
+  <section class="card">
+    <h3>📊 서비스 현황</h3>
+    <div class="stat-grid">
+      <div class="stat"><b>{{ stats.users }}</b><span>인증한 학생</span></div>
+      <div class="stat"><b>{{ stats.reviews }}</b><span>리뷰</span></div>
+      <div class="stat"><b>{{ stats.photos }}</b><span>리뷰 사진</span></div>
+      <div class="stat"><b>{{ stats.receipts }}</b><span>방문 인증(영수증) 리뷰</span></div>
+      <div class="stat"><b>{{ stats.reviewed_places }}<small class="muted"> / {{ stats.places }}</small></b><span>리뷰 있는 가게 ({{ stats.coverage }}%)</span></div>
+      <div class="stat"><b>{{ stats.votes }}</b><span>모임 투표 (참여 {{ stats.ballots }}표)</span></div>
+      {% if stats.samples %}<div class="stat"><b>{{ stats.samples }}</b><span>🧪 시연용 샘플 리뷰 (통계 제외)</span></div>{% endif %}
+    </div>
+  </section>
+
+  <section class="card">
+    <h3>📈 최근 14일 추이</h3>
+    <div class="legend"><span><i style="background:var(--brand)"></i>새 리뷰</span><span><i style="background:#f6b28f"></i>새 인증 학생</span></div>
+    <div class="daily">
+      {% for d in daily %}
+        <div class="day" title="{{ d.date }} · 리뷰 {{ d.reviews }} · 가입 {{ d.users }}">
+          <small>{{ d.reviews + d.users if d.reviews + d.users else '' }}</small>
+          <div class="bar-u" style="height: {{ (d.users / peak * 100)|round(1) }}px"></div>
+          <div class="bar-r" style="height: {{ (d.reviews / peak * 100)|round(1) }}px"></div>
+          <span>{{ d.date }}</span>
+        </div>
+      {% endfor %}
+    </div>
+  </section>
+
+  <section class="card">
+    <h3>⭐ 리뷰 많은 가게 TOP 5</h3>
+    <ol>
+      {% for p in top_places %}
+        <li><a href="{{ url_for('index', place=p.id) }}">{{ p.name }}</a> <span class="muted small">{{ p.category_text }}</span></li>
+      {% endfor %}
+    </ol>
+  </section>
+
+  <!-- 신고된 리뷰 -->
+  <section class="card" id="reports">
+    <h3>🚩 신고된 리뷰 <span class="muted small">(신고 {{ review_th }}회부터 자동으로 숨겨져요)</span></h3>
+    {% if reported_reviews %}
+      <div class="table-wrap"><table class="admin-table">
+        <tr><th>가게</th><th>리뷰</th><th>신고</th><th>상태</th><th>처리</th></tr>
+        {% for x in reported_reviews %}
+          <tr>
+            <td>{{ x.r.place.name }}</td>
+            <td>{{ '★' * x.r.rating }} {{ x.r.content or '(한줄평 없음)' }}
+              {% if x.reasons %}<br><span class="muted small">사유: {{ x.reasons|join(' / ') }}</span>{% endif %}</td>
+            <td>{{ x.r.report_count }}회</td>
+            <td>{% if x.hidden %}<span class="state-hidden">숨김</span>{% else %}표시 중{% endif %}</td>
+            <td>
+              <form method="post" action="{{ url_for('admin_review', rid=x.r.id, action='restore') }}">
+                <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                <button class="btn btn-sm">복구</button></form>
+              <form method="post" action="{{ url_for('admin_review', rid=x.r.id, action='delete') }}" onsubmit="return confirm('이 리뷰를 사진까지 완전히 삭제할까요?')">
+                <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                <button class="btn btn-sm btn-ghost">삭제</button></form>
+            </td>
+          </tr>
+        {% endfor %}
+      </table></div>
+    {% else %}
+      <p class="empty">신고된 리뷰가 없어요.</p>
+    {% endif %}
+  </section>
+
+  <!-- 신고된 사진 -->
+  <section class="card" id="photos">
+    <h3>🖼 신고된 사진</h3>
+    {% if reported_photos %}
+      <div class="table-wrap"><table class="admin-table">
+        <tr><th>사진</th><th>가게</th><th>신고</th><th>상태</th><th>처리</th></tr>
+        {% for x in reported_photos %}
+          <tr>
+            <td><a href="{{ url_for('photo_file', name=x.ph.filename) }}" target="_blank"><img class="admin-thumb" src="{{ url_for('photo_file', name=x.ph.filename) }}" alt="신고된 사진"></a></td>
+            <td>{{ x.ph.review.place.name }}
+              {% if x.reasons %}<br><span class="muted small">사유: {{ x.reasons|join(' / ') }}</span>{% endif %}</td>
+            <td>{{ x.ph.report_count }}회</td>
+            <td>{% if x.hidden %}<span class="state-hidden">숨김</span>{% else %}표시 중{% endif %}</td>
+            <td>
+              <form method="post" action="{{ url_for('admin_photo', pid=x.ph.id, action='restore') }}">
+                <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                <button class="btn btn-sm">복구</button></form>
+              <form method="post" action="{{ url_for('admin_photo', pid=x.ph.id, action='delete') }}" onsubmit="return confirm('이 사진을 삭제할까요?')">
+                <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                <button class="btn btn-sm btn-ghost">삭제</button></form>
+            </td>
+          </tr>
+        {% endfor %}
+      </table></div>
+    {% else %}
+      <p class="empty">신고된 사진이 없어요.</p>
+    {% endif %}
+  </section>
+
+  <!-- 폐업 신고 / 숨긴 가게 -->
+  <section class="card" id="places">
+    <h3>🏚 폐업 신고 · 숨긴 가게 <span class="muted small">(폐업 신고 {{ closed_th }}회부터 자동으로 숨겨져요)</span></h3>
+    {% if closed_places %}
+      <div class="table-wrap"><table class="admin-table">
+        <tr><th>가게</th><th>폐업 신고</th><th>상태</th><th>처리</th></tr>
+        {% for p in closed_places %}
+          <tr>
+            <td>{{ p.name }}<br><span class="muted small">{{ p.address }}</span>
+              {% if p.kakao_url %}<br><a class="small" href="{{ p.kakao_url }}" target="_blank" rel="noopener">카카오맵에서 확인</a>{% endif %}</td>
+            <td>{{ p.closed_report_count or 0 }}회</td>
+            <td>{% if p.hidden or (p.closed_report_count or 0) >= closed_th %}<span class="state-hidden">숨김</span>{% else %}표시 중{% endif %}</td>
+            <td>
+              <form method="post" action="{{ url_for('admin_place', pid=p.id, action='restore') }}">
+                <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                <button class="btn btn-sm">영업 중 (다시 표시)</button></form>
+              {% if not p.hidden %}
+              <form method="post" action="{{ url_for('admin_place', pid=p.id, action='hide') }}">
+                <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                <button class="btn btn-sm btn-ghost">폐업 확인 (숨김)</button></form>
+              {% endif %}
+              <form method="post" action="{{ url_for('admin_place', pid=p.id, action='delete') }}"
+                    onsubmit='return confirm({{ (p.name ~ "을(를) 완전히 삭제할까요?\n리뷰·사진·카카오 리뷰·투표 후보까지 함께 지워지고 되돌릴 수 없어요.")|tojson }});'>
+                <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                <button class="btn btn-sm btn-danger">완전 삭제</button></form>
+            </td>
+          </tr>
+        {% endfor %}
+      </table></div>
+    {% else %}
+      <p class="empty">폐업 신고된 가게가 없어요.</p>
+    {% endif %}
+  </section>
+</main>
+{% endblock %}

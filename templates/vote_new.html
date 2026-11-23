@@ -1,0 +1,59 @@
+{% extends "base.html" %}
+{% block title %}모임 투표 만들기 - 캠슐랭{% endblock %}
+{% block content %}
+<main class="page">
+  <p><a href="{{ url_for('index') }}">← 지도로</a></p>
+  <h1>모임 장소 투표 만들기</h1>
+  <p class="muted small">후보 가게를 2~5곳 고르면 투표 링크가 만들어져요. 링크는 단톡방에 공유하면 됩니다. (7일 후 마감)</p>
+
+  <form method="post" class="card stack" id="vote-form">
+    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+    <div class="field">
+      <label class="label">투표 제목</label>
+      <input name="title" maxlength="100" placeholder="예: 금요일 과 뒤풀이 어디서 할까?">
+    </div>
+
+    <div class="field">
+      <label class="label">후보 가게 <span id="picked" class="muted small"></span></label>
+      <input type="search" id="vote-filter" placeholder="가게 이름으로 찾기">
+      {% if places %}
+        <ul class="pick-list">
+          {% for p in places %}
+            <li data-name="{{ p.name }}">
+              <label class="check">
+                <input type="checkbox" name="place_ids" value="{{ p.id }}" {% if p.id in preselect %}checked{% endif %}>
+                <span><b>{{ p.name }}</b> <span class="muted small">{{ p.category_text }} · {{ p.address }}</span></span>
+              </label>
+            </li>
+          {% endfor %}
+        </ul>
+      {% else %}
+        <p class="empty">아직 등록된 가게가 없어요. <a href="{{ url_for('place_new') }}">가게를 먼저 등록</a>해 주세요.</p>
+      {% endif %}
+    </div>
+    <button class="btn btn-primary btn-block" type="submit">투표 링크 만들기</button>
+  </form>
+</main>
+{% endblock %}
+
+{% block scripts %}
+<script>
+  (function () {
+    const boxes = [...document.querySelectorAll('input[name=place_ids]')];
+    const picked = document.getElementById('picked');
+    const update = () => {
+      const n = boxes.filter(b => b.checked).length;
+      picked.textContent = `${n}곳 선택 (2~5곳)`;
+      boxes.forEach(b => { b.disabled = !b.checked && n >= 5; });
+    };
+    boxes.forEach(b => b.addEventListener('change', update));
+    update();
+    document.getElementById('vote-filter').addEventListener('input', e => {
+      const q = e.target.value.trim();
+      document.querySelectorAll('.pick-list li').forEach(li => {
+        li.hidden = q && !li.dataset.name.includes(q);
+      });
+    });
+  })();
+</script>
+{% endblock %}

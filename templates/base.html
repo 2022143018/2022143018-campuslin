@@ -1,0 +1,39 @@
+<!doctype html>
+<html lang="ko">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="csrf-token" content="{{ csrf_token() }}">
+  <title>{% block title %}캠슐랭{% endblock %}</title>
+  <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+</head>
+<body class="{% block body_class %}{% endblock %}">
+<header class="topbar">
+  <a class="brand" href="{{ url_for('index') }}">🍚 캠슐랭</a>
+  {% if current_user.is_authenticated %}
+    <nav class="nav">
+      {% if current_user.is_verified %}
+        {% if is_admin %}<a class="nav-link" href="{{ url_for('admin') }}">🛠 운영</a>{% endif %}
+        <a class="nav-link" href="{{ url_for('ranking') }}">🏆 랭킹</a>
+        <span class="school-badge">{{ current_user.school.name }}</span>
+      {% endif %}
+      <form method="post" action="{{ url_for('logout') }}">
+        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+        <button class="link-btn" type="submit">로그아웃</button>
+      </form>
+    </nav>
+  {% endif %}
+</header>
+
+{% with messages = get_flashed_messages() %}
+  {% if messages %}
+    <div class="flash-wrap">
+      {% for m in messages %}<div class="flash">{{ m }}</div>{% endfor %}
+    </div>
+  {% endif %}
+{% endwith %}
+
+{% block content %}{% endblock %}
+{% block scripts %}{% endblock %}
+</body>
+</html>

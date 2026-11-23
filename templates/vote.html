@@ -1,0 +1,73 @@
+{% extends "base.html" %}
+{% block title %}{{ vote.title }} - 캠슐랭 투표{% endblock %}
+{% block content %}
+<main class="page">
+  <h1 id="vote-title">{{ vote.title }}</h1>
+  <p class="muted small">한 사람당 한 표, 다시 누르면 선택이 바뀌어요. 결과는 자동으로 갱신됩니다.</p>
+
+  <div class="row share">
+    <input id="share-url" value="{{ url_for('vote_page', slug=vote.slug, _external=True) }}" readonly>
+    <button class="btn" id="copy-btn" type="button">링크 복사</button>
+  </div>
+
+  <ul id="options" class="vote-options"></ul>
+  <p id="vote-status" class="muted small"></p>
+</main>
+{% endblock %}
+
+{% block scripts %}
+<script src="{{ url_for('static', filename='js/common.js') }}"></script>
+<script>
+  (function () {
+    const slug = {{ vote.slug | tojson }};
+    const listEl = document.getElementById('options');
+    const statusEl = document.getElementById('vote-status');
+    let expired = false;
+
+    function render(d) {
+      expired = d.expired;
+      const max = Math.max(1, ...d.options.map(o => o.count));
+      listEl.innerHTML = d.options.map(o => {
+        const pct = d.total ? Math.round(o.count / d.total * 100) : 0;
+        const lead = o.count === max && o.count > 0;
+        return `<li class="${o.id === d.mine ? 'mine' : ''}">
+          <button type="button" data-id="${o.id}" ${d.expired ? 'disabled' : ''}>
+            <div class="row space">
+              <span><b>${esc(o.name)}</b> <span class="muted small">${esc(o.category)}</span>
+                ${lead ? '<span class="badge">1위</span>' : ''}</span>
+              <span><b>${o.count}</b>표 <span class="muted small">${pct}%</span></span>
+            </div>
+            <div class="small muted">${esc(o.address || '')}</div>
+            <div class="bar"><span style="width:${pct}%"></span></div>
+          </button>
+          ${o.kakaoUrl ? `<a class="small" href="${esc(o.kakaoUrl)}" target="_blank" rel="noopener">🕐 영업시간·메뉴 보기 (카카오맵)</a>` : ''}
+        </li>`;
+      }).join('');
+      statusEl.textContent = d.expired ? '마감된 투표입니다.'
+        : `총 ${d.total}명 참여${d.mine ? ' · 내 선택이 표시되어 있어요' : ''}`;
+    }
+
+    async function refresh() {
+      try { render(await api(`/api/v/${slug}`)); } catch (e) { statusEl.textContent = e.message; }
+    }
+
+    listEl.addEventListener('click', async e => {
+      const btn = e.target.closest('button[data-id]');
+      if (!btn || expired) return;
+      try {
+        render(await api(`/api/v/${slug}/ballot`, { method: 'POST', json: { option_id: Number(btn.dataset.id) } }));
+      } catch (err) { alert(err.message); }
+    });
+
+    document.getElementById('copy-btn').addEventListener('click', async () => {
+      const input = document.getElementById('share-url');
+      try { await navigator.clipboard.writeText(input.value); }
+      catch (e) { input.select(); document.execCommand('copy'); }
+      document.getElementById('copy-btn').textContent = '복사됨!';
+    });
+
+    refresh();
+    setInterval(() => { if (!document.hidden && !expired) refresh(); }, 5000);  // 5초마다 결과 갱신
+  })();
+</script>
+{% endblock %}
