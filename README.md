@@ -5,6 +5,7 @@
 
 | 항목 | 내용 |
 |---|---|
+| REPLT 실행주소 바로가기 | https://replit.com/@sg0042/2022143018-campuslin |
 | 배포 주소 (Replit) | https://cf1ae03b-ac27-4a05-82a5-139733027ddc-00-3ahgch1z0mhqn.sisko.replit.dev |
 | GitHub | https://github.com/2022143018/2022143018-campuslin |
 | 대상 학교 | 신구대학교 (설정으로 다른 학교도 가능) |
