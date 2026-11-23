@@ -46,7 +46,7 @@ MAX_DISTANCE_KM = float(os.getenv("MAX_DISTANCE_KM", "3"))
 app = Flask(__name__)
 app.config.update(
     SECRET_KEY=os.getenv("SECRET_KEY") or "dev-only-change-me",
-    SQLALCHEMY_DATABASE_URI=os.getenv("DATABASE_URL") or "sqlite:///" + os.path.join(INSTANCE_DIR, "campuslin.db"),
+    SQLALCHEMY_DATABASE_URI=os.getenv("CAMPUSLIN_DB_URL") or "sqlite:///" + os.path.join(INSTANCE_DIR, "campuslin.db"),
     MAX_CONTENT_LENGTH=25 * 1024 * 1024,   # 한 번에 올릴 수 있는 최대 용량 25MB (사진 여러 장)
 )
 
